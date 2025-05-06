@@ -6,8 +6,8 @@
  * @property {boolean|null} querCarioca
  */
 
-const axios = require("axios");
-const cheerio = require("cheerio");
+import { get } from "axios";
+import { load } from "cheerio";
 
 const url =
   "https://www.ufc.br/restaurante/cardapio/1-restaurante-universitario-de-fortaleza";
@@ -61,10 +61,9 @@ function showInformations(refeicao) {
   console.log("Suco de", refeicao.suco);
 }
 
-axios
-  .get(url)
+get(url)
   .then((response) => {
-    const $ = cheerio.load(response.data);
+    const $ = load(response.data);
 
     let almoco = getRefeicao($, "almoco");
     let janta = getRefeicao($, "jantar");
