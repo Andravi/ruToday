@@ -1,18 +1,18 @@
+/**
+ * @typedef {Object} Refeicao
+ * @property {string[]} pratos
+ * @property {string} suco
+ * @property {string|null} acompanhamento
+ * @property {boolean|null} querCarioca
+ */
+
 const axios = require("axios");
 const cheerio = require("cheerio");
 
 const url =
   "https://www.ufc.br/restaurante/cardapio/1-restaurante-universitario-de-fortaleza";
 
-let pratosAlmoco = [];
-let sucoAlmoco = "";
-let acompanhamentoAlmoco = "";
-let pratosJanta = [];
-let sucoJanta = "";
-let acompanhamentoJantar = "";
-
 const querCarioca = false; // pegar por argumentos no momento da chamada
-const querPure = false; // pegar por argumentos no momento da chamada
 
 function pushToList(list, item, index) {
   if (item.includes("(Contém")) {
@@ -23,55 +23,59 @@ function pushToList(list, item, index) {
   }
 }
 
+/**
+ * Pega informações essenciais das informações de hoje a depender do tipo de refeição escolhida.
+ * @param {import("cheerio").CheerioAPI} $ - A página usando o Cheerio.
+ * @param {String} tipoRefeicao - Tipo de refeição, 'almoco' ou 'jantar'.
+ */
+function getRefeicao($, tipoRefeicao) {
+  let refeicao = {};
+  let pratos = [];
+  let suco = "";
+  let acompanhamento = "";
+  $(
+    `.${tipoRefeicao} .principal .desc, .${tipoRefeicao} .vegetariano .desc`
+  ).each((index, element) => {
+    let prato = $(element).text();
+    pushToList(pratos, prato, index);
+  });
+
+  $(".almoco .suco .desc").each((index, element) => {
+    suco = $(element).text();
+  });
+
+  $(".almoco .guarnicao .desc").each((index, element) => {
+    acompanhamento = $(element).text();
+  });
+
+  pratos = pratos.filter((n) => n);
+  refeicao.pratos = pratos;
+  refeicao.suco = suco;
+  refeicao.acompanhamento = acompanhamento;
+  return refeicao;
+}
+
+function showInformations(refeicao) {
+  console.log("Pratos:", refeicao.pratos);
+  console.log("Acompanhamento:", refeicao.acompanhamento);
+  console.log("Suco de", refeicao.suco);
+}
+
 axios
   .get(url)
   .then((response) => {
     const $ = cheerio.load(response.data);
 
-    $(".almoco .principal .desc, .almoco .vegetariano .desc").each(
-      (index, element) => {
-        let prato = $(element).text();
-        pushToList(pratosAlmoco, prato, index);
-      }
-    );
+    let almoco = getRefeicao($, "almoco");
+    let janta = getRefeicao($, "jantar");
 
-    $(".jantar .principal .desc, .jantar .vegetariano .desc").each(
-      (index, element) => {
-        let prato = $(element).text();
-        pushToList(pratosJanta, prato, index);
-      }
-    );
-
-    $(".almoco .suco .desc").each((index, element) => {
-      sucoAlmoco = $(element).text();
-    });
-
-    $(".jantar .suco .desc").each((index, element) => {
-      sucoJanta = $(element).text();
-    });
-
-    $(".almoco .guarnicao .desc").each((index, element) => {
-      acompanhamentoAlmoco = $(element).text();
-    });
-
-    $(".jantar .guarnicao .desc").each((index, element) => {
-      acompanhamentoJantar = $(element).text();
-    });
-
-    pratosAlmoco = pratosAlmoco.filter((n) => n);
-    pratosJanta = pratosJanta.filter((n) => n);
+    // Pode ter um momento de input para pegar qual opção quer
 
     console.log("ALMOÇO:");
-    console.log("Pratos:", pratosAlmoco);
-    console.log("Acompanhamento:", acompanhamentoAlmoco);
-    console.log("Suco de", sucoAlmoco);
-
+    showInformations(almoco);
     console.log();
-
     console.log("JANTAR:");
-    console.log("Pratos:", pratosJanta);
-    console.log("Acompanhamento:", acompanhamentoJantar);
-    console.log("Suco de", sucoJanta);
+    showInformations(janta);
   })
   .catch((error) => {
     console.error("Erro ao acessar a página:", error.message);
