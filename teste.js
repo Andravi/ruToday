@@ -32,7 +32,7 @@ function getRefeicao($, tipoRefeicao) {
   let refeicao = {};
   let pratos = [];
   let suco = "";
-  let acompanhamento = "";
+  let acompanhamentos = [];
   $(
     `.${tipoRefeicao} .principal .desc, .${tipoRefeicao} .vegetariano .desc`
   ).each((index, element) => {
@@ -40,18 +40,19 @@ function getRefeicao($, tipoRefeicao) {
     pushToList(pratos, prato, index);
   });
 
-  $(".almoco .suco .desc").each((index, element) => {
+  $(`.${tipoRefeicao} .suco .desc`).each((index, element) => {
     suco = $(element).text();
   });
 
-  $(".almoco .guarnicao .desc").each((index, element) => {
+  $(`.${tipoRefeicao} .guarnicao .desc`).each((index, element) => {
     acompanhamento = $(element).text();
+    pushToList(acompanhamentos, acompanhamento, index);
   });
 
   pratos = pratos.filter((n) => n);
   refeicao.pratos = pratos;
   refeicao.suco = suco;
-  refeicao.acompanhamento = acompanhamento;
+  refeicao.acompanhamento = acompanhamentos[0];
   return refeicao;
 }
 
